@@ -1,0 +1,16 @@
+
+requests
+beautifulsoup4
+
+pandas
+
+fastapi
+uvicorn[standard]
+
+streamlit
+sqlalchemy
+databases
+
+passlib[bcrypt]
+PyJWT
+python-multipart
