@@ -9,7 +9,6 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 app = FastAPI(title="Books API", version="1.0")
 
-# Load data at startup
 BOOKS_DF = pd.read_csv('data/books.csv')
 
 @app.get("/api/v1/health")
