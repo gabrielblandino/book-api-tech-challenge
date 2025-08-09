@@ -1,121 +1,34 @@
+# Tech Challenge: API Pública para Consulta de Livros
 
-# Book API - Tech Challenge FIAP
+Este projeto consiste na criação de uma infraestrutura completa para extração, transformação e disponibilização de dados de livros, servidos através de uma API RESTful pública.
 
-Este repositório contém o projeto desenvolvido para o Tech Challenge da pós-graduação em Machine Learning Engineering da FIAP. A proposta foi criar um pipeline de dados completo, extraindo informações do site [Books to Scrape](https://books.toscrape.com/) e disponibilizando esses dados por meio de uma API pública com foco em consumo por cientistas de dados e sistemas de recomendação.
+## 1. Arquitetura do Projeto
 
-## Tecnologias Utilizadas
+A solução foi desenhada para ser modular, eficiente e escalável, seguindo as melhores práticas de engenharia de machine learning para a preparação de dados.
 
-- Python 3.8+
-- FastAPI
-- Uvicorn
-- BeautifulSoup + Requests
-- Pandas
+**Diagrama do Pipeline de Dados:**
+`[Site: books.toscrape.com] -> [Script de Web Scraping (Python/BeautifulSoup)] -> [Armazenamento em CSV (data/books.csv)]`
 
-## Organização do Projeto
+**Diagrama da Arquitetura da API:**
+`[Usuário/Cliente] -> [Internet] -> [Heroku Platform] -> [API RESTful (FastAPI)] -> [Leitura de Dados (Pandas DataFrame)] -> [Resposta JSON]`
 
-```
-book-api-tech-challenge/
-├── api/
-│   └── main.py             # API com todos os endpoints
-├── scripts/
-│   └── scrapping.py        # Script responsável por extrair os dados
-├── data/
-│   └── books.csv           # Base local com os dados extraídos
-├── docs/
-│   └── arquitetura.pdf     # Diagrama e explicações da arquitetura do projeto
-├── requirements.txt
-└── README.md
-```
+### Pipeline de Dados (ETL)
 
-## Como rodar o projeto localmente
+O processo de ingestão de dados segue um modelo de Extração, Transformação e Carga (ETL):
 
-1. Clone o repositório:
-```bash
-git clone https://github.com/gabrielblandino/book-api-tech-challenge.git
-cd book-api-tech-challenge
-```
+* **Extração (Extract):** O script `scripts/scrapping.py` navega por todas as 50 páginas de listagem de livros. Para cada livro, ele extrai dados básicos e o link para a página de detalhes. Em seguida, acessa essa página de detalhes para obter os dados completos.
+* **Transformação (Transform):** Os dados brutos (HTML) são parseados com `BeautifulSoup`. O preço é limpo para remover símbolos de moeda, e todos os dados (título, preço, avaliação, disponibilidade, categoria e imagem) são estruturados.
+* **Carga (Load):** Um DataFrame do Pandas é criado com os dados de todos os livros. Uma coluna `id` é gerada para identificação única, e o DataFrame final é salvo como `data/books.csv`, que serve como a fonte de dados para a API.
 
-2. Crie e ative o ambiente virtual:
-```bash
-python -m venv venv
-venv\Scripts\activate   # Windows
-# ou
-source venv/bin/activate  # Linux/macOS
-```
+### Arquitetura da API
 
-3. Instale os pacotes necessários:
-```bash
-pip install -r requirements.txt
-```
+* **Framework:** A API foi desenvolvida com **FastAPI**, um framework moderno e de alta performance para Python. Ele foi escolhido por sua velocidade, validação de dados nativa com Pydantic e geração automática de documentação interativa (Swagger UI).
+* **Fonte de Dados:** Na inicialização, a API carrega o arquivo `data/books.csv` em um DataFrame do Pandas que fica em memória. Esta abordagem garante latência ultrabaixa para todas as operações de leitura, sendo ideal para o escopo deste projeto.
+* **Deploy:** A aplicação está hospedada na plataforma **Heroku**, garantindo disponibilidade pública, escalabilidade e um ambiente de produção robusto.
+* **Autenticação:** Endpoints sensíveis, como o que dispara o scraping, são protegidos por autenticação via token JWT (JSON Web Token), conforme o desafio bônus.
 
-4. Execute o scraper para gerar os dados:
-```bash
-python scripts/scrapping.py
-```
+### Plano de Escalabilidade Futura
 
-5. Inicie a API localmente:
-```bash
-uvicorn api.main:app --reload
-```
-
-6. Acesse a documentação interativa:
-```
-http://127.0.0.1:8000/docs
-```
-
-## Endpoints principais
-
-| Método | Rota                                      | Descrição |
-|--------|-------------------------------------------|-----------|
-| GET    | `/api/v1/health`                          | Verifica se a API está funcionando |
-| GET    | `/api/v1/books`                           | Retorna todos os livros da base |
-| GET    | `/api/v1/books/{id}`                      | Retorna os dados de um livro específico |
-| GET    | `/api/v1/categories`                      | Lista todas as categorias disponíveis |
-| GET    | `/api/v1/books/search?title=&category=`   | Busca livros por título e/ou categoria |
-
-Todos esses endpoints podem ser testados diretamente pela interface Swagger.
-
-## Exemplos de resposta
-
-### Listagem de livros
-`GET /api/v1/books`
-```json
-[
-  {
-    "id": 1,
-    "title": "A Light in the Attic",
-    "price": 51.77,
-    "rating": "Three",
-    "availability": "In stock",
-    "category": "Poetry",
-    "image_url": "http://books.toscrape.com/media/cache/...jpg"
-  }
-]
-```
-
-### Verificação de status
-`GET /api/v1/health`
-```json
-{ "status": "ok" }
-```
-
-## Deploy
-
-O deploy em nuvem será feito utilizando Render ou Fly.io. O link de produção será atualizado aqui assim que estiver disponível.
-
-## Arquitetura
-
-O diagrama explicando a arquitetura do projeto estará disponível na pasta `/docs`.
-
-## Vídeo de apresentação
-
-Link da apresentação (será adicionado posteriormente).
-
-## O que foi entregue até agora
-
-- Coleta automatizada de dados via web scraping
-- API REST estruturada com FastAPI
-- Interface de documentação automática (Swagger)
-- Endpoints opcionais de estatísticas e recursos para modelos de ML
-- Sistema de autenticação com JWT
-- Preparação para deploy e apresentação final
+1.  **Banco de Dados:** Substituir o `books.csv` por um banco de dados gerenciado (como Heroku Postgres) para permitir operações de escrita mais complexas e maior volume de dados.
+2.  **Cache:** Implementar um cache com Redis para os endpoints mais requisitados, como `GET /api/v1/books` e `GET /api/v1/stats/overview`, reduzindo a carga na aplicação.
+3.  **Tarefas em Background:** Migrar a execução do scraper para uma fila de tarefas (como Celery com RabbitMQ), permitindo que processos de longa duração rodem de forma assíncrona sem bloquear a API.

@@ -1,11 +1,12 @@
-# api/main.py
-
 from typing import Optional
 from fastapi import FastAPI, HTTPException, Depends
 import pandas as pd
 from fastapi import FastAPI, Depends, HTTPException
 from api.auth import create_access_token, verify_token, fake_user, pwd_context
 from fastapi.security import OAuth2PasswordRequestForm
+from pydantic import BaseModel
+import subprocess
+import sys
 
 app = FastAPI(title="Books API", version="1.0")
 
@@ -88,9 +89,23 @@ def refresh_token(user: dict = Depends(verify_token)):
     new_token = create_access_token(data={"sub": user['sub']})
     return {"access_token": new_token, "token_type": "bearer"}
 
-@app.get("/api/v1/scraping/trigger")
+@app.get("/api/v1/scraping/trigger", summary="Dispara a execução do web scraper")
 def trigger_scraper(user: dict = Depends(verify_token)):
-    return {"message": "Scraper executado com sucesso"}
+    """
+    Endpoint protegido que inicia o processo de web scraping.
+    Isso executará o script `scrapping.py` em um processo separado.
+    """
+    try:
+        # Garante que o script seja executado com o mesmo interpretador Python que a API
+        python_executable = sys.executable
+        script_path = "scripts/scrapping.py"
+        
+        # Inicia o processo de scraping
+        subprocess.Popen([python_executable, script_path])
+        
+        return {"message": "Processo de scraping iniciado com sucesso. O arquivo books.csv será atualizado em breve."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Falha ao iniciar o scraper: {e}")
 
 @app.get("/api/v1/ml/features")
 def ml_features():
@@ -105,8 +120,6 @@ def ml_training_data():
     df['availability_flag'] = df['availability'].apply(lambda x: 1 if 'In stock' in x else 0)
     df = df[['price', 'rating_numeric', 'availability_flag']]
     return df.to_dict(orient='records')
-
-from pydantic import BaseModel
 
 class BookInput(BaseModel):
     price: float

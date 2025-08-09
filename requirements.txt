@@ -1,16 +1,17 @@
-
+# Core para Scraping e Dados
 requests
 beautifulsoup4
-
 pandas
 
+# Core da API e Servidor de Produção
 fastapi
+gunicorn
 uvicorn[standard]
 
-streamlit
-sqlalchemy
-databases
-
+# Autenticação
 passlib[bcrypt]
 PyJWT
 python-multipart
+
+# Para desenvolvimento local
+python-dotenv
