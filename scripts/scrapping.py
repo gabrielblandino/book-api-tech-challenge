@@ -1,5 +1,3 @@
-# scripts/scraper.py
-
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
@@ -21,18 +19,17 @@ def scrape_books():
         try:
             soup = get_page_soup(url)
         except requests.exceptions.HTTPError:
-            break  # No more pages
+            break 
 
         for article in soup.select('article.product_pod'):
             title = article.h3.a['title']
             price_text = article.select_one('.price_color').text.strip()
             price_clean = price_text.encode('ascii', 'ignore').decode().replace('£', '').replace('Â', '').strip()
             price = float(price_clean)
-            rating = article.p['class'][1]  # Example: 'Three'
+            rating = article.p['class'][1]
             availability = article.select_one('.availability').text.strip()
             detail_url = BASE_URL + 'catalogue/' + article.h3.a['href']
-            
-            # Get Category and Image from detail page
+
             detail_soup = get_page_soup(detail_url)
             category = detail_soup.select('ul.breadcrumb li a')[-1].text.strip()
             image_url = BASE_URL + detail_soup.select_one('.item.active img')['src'].replace('../', '')
@@ -48,10 +45,9 @@ def scrape_books():
 
         page += 1
 
-    # Save to CSV
     os.makedirs('data', exist_ok=True)
     df = pd.DataFrame(books)
-    df['id'] = df.index + 1  # Add ID
+    df['id'] = df.index + 1
     df.to_csv('data/books.csv', index=False)
     print(f"[✓] Extração finalizada: {len(df)} livros salvos em data/books.csv.")
 
