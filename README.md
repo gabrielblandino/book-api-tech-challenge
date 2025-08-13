@@ -8,7 +8,7 @@ Este projeto consiste na criação de uma infraestrutura completa de dados para 
 
 A aplicação realiza web scraping do site [books.toscrape.com](http://books.toscrape.com/), armazena os dados e os expõe através de endpoints RESTful funcionais e documentados.
 
-**URL da API em Produção:** `https://book-api-tech-83e5f237d218.herokuapp.com/`
+**URL da API em Produção:** `https://book-api-tech-83e5f237d218.herokuapp.com/docs`
 
 ## Arquitetura e Pipeline de Dados
 
